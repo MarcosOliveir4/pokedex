@@ -1,1 +1,6 @@
-<h1>Home aqui</h1>
+<div class="home">
+  <app-pokecard
+    [pokemons]="pokeCard"
+    (pokemonClicked)="pokemon($event)"
+  ></app-pokecard>
+</div>

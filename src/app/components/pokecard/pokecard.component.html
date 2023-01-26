@@ -1,0 +1,15 @@
+<section class="pokecard-grid">
+  <ng-container *ngFor="let pokemon of pokemons">
+    <div class="pokecard" [ngClass]="pokemon.type" (click)="clicked(pokemon)">
+      <div class="pokecard-title">
+        <p>{{ pokemon.position | position }}</p>
+      </div>
+      <div class="pokecard-body">
+        <img [src]="pokemon.img" height="150" width="150" />
+      </div>
+      <div class="pokecard-footer">
+        <p>{{ pokemon.name }}</p>
+      </div>
+    </div>
+  </ng-container>
+</section>
