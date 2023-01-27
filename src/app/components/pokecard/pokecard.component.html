@@ -1,6 +1,11 @@
-<section class="pokecard-grid">
+<section class="pokecard-grid" data-testid="pokecardgrid">
   <ng-container *ngFor="let pokemon of pokemons">
-    <div class="pokecard" [ngClass]="pokemon.type" (click)="clicked(pokemon)">
+    <div
+      class="pokecard"
+      [ngClass]="pokemon.type"
+      (click)="clicked(pokemon)"
+      [attr.data-testid]="'pokecarditem-' + pokemon.position"
+    >
       <div class="pokecard-title">
         <p>{{ pokemon.position | position }}</p>
       </div>
