@@ -1,6 +1,11 @@
-<div class="home">
+<div class="home" *ngIf="pokeCard">
   <app-pokecard
     [pokemons]="pokeCard"
     (pokemonClicked)="pokemon($event)"
   ></app-pokecard>
+  <div class="home-button">
+    <button (click)="buscarPokemons()">
+      Buscar mais <img src="assets/pokeball-w.svg" alt="" />
+    </button>
+  </div>
 </div>
