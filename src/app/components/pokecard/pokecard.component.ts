@@ -22,7 +22,7 @@ type PokeTypes =
 
 export interface PokeCardProps {
   name: string;
-  type: PokeTypes;
+  type: PokeTypes | string;
   position: string;
   img: string;
 }

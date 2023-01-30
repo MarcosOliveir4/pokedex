@@ -1,124 +1,66 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { map, switchMap } from 'rxjs';
 import { PokeCardProps } from 'src/app/components/pokecard/pokecard.component';
+import {
+  DetalhePokemon,
+  PokeapiService,
+  PokemonApiFilters,
+} from 'src/app/services/pokeapi.service';
+import { environment } from 'src/environments/environment';
 
 @Component({
   templateUrl: 'home.component.html',
   styleUrls: ['home.component.scss'],
 })
-export class HomeComponent {
-  public pokeCard: PokeCardProps[] = [
-    {
-      name: 'Bulbasaur',
-      type: 'grass',
-      position: '1',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'fire',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Squirtle',
-      type: 'water',
-      position: '7',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'bug',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'dark',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'dragon',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'electric',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'fairy',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'fighting',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'flying',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'ghost',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
+export class HomeComponent implements OnInit {
+  public pokeCard: PokeCardProps[] = [];
+  private baseUrlImg = environment.baseUrlImage;
+  private filterListPokemon: PokemonApiFilters = { limit: 15, offset: 0 };
 
-    {
-      name: 'Charmander',
-      type: 'ground',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'ice',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'poison',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'psychic',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'rock',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'steel',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-    {
-      name: 'Charmander',
-      type: 'normal',
-      position: '4',
-      img: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png',
-    },
-  ];
-
+  constructor(private pokeapiService: PokeapiService) {}
   public pokemon(pokemon: PokeCardProps) {
     console.log(pokemon);
+  }
+
+  public buscarPokemons() {
+    this.listPokemonService(this.resolverFilter(this.filterListPokemon));
+  }
+  private resolverFilter(filter: PokemonApiFilters): PokemonApiFilters {
+    if (filter.offset && filter.limit) {
+      filter.offset = filter.offset + filter.limit;
+      return filter;
+    }
+    filter.offset = this.filterListPokemon.limit;
+    return filter;
+  }
+  private ordenarListagem({ name, id, types }: DetalhePokemon) {
+    this.pokeCard.push({
+      name,
+      type: types[0].type.name,
+      position: `${id}`,
+      img: `${this.baseUrlImg}${id}.png`,
+    });
+
+    this.pokeCard.sort((p1, p2) => Number(p1.position) - Number(p2.position));
+  }
+
+  private listPokemonService(filterListPokemon: PokemonApiFilters) {
+    this.pokeapiService
+      .listPokemons(filterListPokemon)
+      .pipe(
+        map(({ results }) => results.map(({ name }) => name)),
+        switchMap((nomes) =>
+          nomes.map((nome) =>
+            this.pokeapiService.detailPokemon(nome).subscribe((pokemon) => {
+              this.ordenarListagem(pokemon);
+            })
+          )
+        )
+      )
+      .subscribe();
+  }
+
+  ngOnInit(): void {
+    this.listPokemonService(this.filterListPokemon);
   }
 }
