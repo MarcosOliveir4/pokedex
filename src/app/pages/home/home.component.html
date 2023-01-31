@@ -1,11 +1,18 @@
-<div class="home" *ngIf="pokeCard">
+<div class="home" *ngIf="!isLoading || pokeCard.length; else loading">
   <app-pokecard
     [pokemons]="pokeCard"
     (pokemonClicked)="pokemon($event)"
   ></app-pokecard>
+  <div *ngIf="!isLoading; else loading"></div>
   <div class="home-button">
-    <button (click)="buscarPokemons()">
+    <button (click)="buscarPokemons()" [disabled]="isLoading">
       Buscar mais <img src="assets/pokeball-w.svg" alt="" />
     </button>
   </div>
 </div>
+
+<ng-template #loading>
+  <div class="loading-container">
+    <app-pokeloading></app-pokeloading>
+  </div>
+</ng-template>
