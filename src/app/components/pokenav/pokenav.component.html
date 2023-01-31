@@ -1,0 +1,12 @@
+<nav class="pokenav">
+  <div class="logo"><img src="assets/pokeball.svg" alt="logo" /></div>
+  <form class="search-form" autocomplete="off">
+    <input
+      name="campoBusca"
+      type="text"
+      placeholder="Buscar pokemon"
+      [(ngModel)]="inputValue"
+    />
+    <button (click)="buscarItem()" [disabled]="loading">Buscar</button>
+  </form>
+</nav>

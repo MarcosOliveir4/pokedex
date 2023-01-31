@@ -1,11 +1,20 @@
+<app-pokenav
+  (pokeInput)="pokeSearch($event)"
+  [loading]="isLoading"
+></app-pokenav>
 <div class="home" *ngIf="!isLoading || pokeCard.length; else loading">
   <app-pokecard
     [pokemons]="pokeCard"
     (pokemonClicked)="pokemon($event)"
   ></app-pokecard>
   <div *ngIf="!isLoading; else loading"></div>
+  <div *ngIf="!isLoading && !pokeCard.length"><h2>Sem dados</h2></div>
   <div class="home-button">
-    <button (click)="buscarPokemons()" [disabled]="isLoading">
+    <button
+      (click)="buscarPokemons()"
+      [disabled]="isLoading"
+      *ngIf="!isSearchBar"
+    >
       Buscar mais <img src="assets/pokeball-w.svg" alt="" />
     </button>
   </div>

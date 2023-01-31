@@ -16,6 +16,7 @@ export class HomeComponent implements OnInit {
   private baseUrlImg = environment.baseUrlImage;
   private filterListPokemon: PokemonApiFilters = { limit: 15, offset: 0 };
   public isLoading = true;
+  public isSearchBar = false;
 
   constructor(private pokeapiService: PokeapiService) {}
   public pokemon(pokemon: PokeCardProps) {
@@ -25,6 +26,41 @@ export class HomeComponent implements OnInit {
   public buscarPokemons() {
     this.isLoading = true;
     this.listPokemonService(this.resolverFilter(this.filterListPokemon));
+  }
+  public pokeSearch(nameSearch: string) {
+    if (!nameSearch) {
+      this.isLoading = true;
+      this.isSearchBar = false;
+      this.pokeCard = [];
+      this.listPokemonService({ limit: 15, offset: 0 });
+      return;
+    }
+
+    this.isLoading = true;
+    this.isSearchBar = true;
+    this.pokeCard = [];
+    this.pokeapiService
+      .filterPokemons(nameSearch)
+      .pipe(
+        map((pokemons) => pokemons.map(({ name }) => name)),
+        mergeMap((nomes) =>
+          from(nomes).pipe(
+            concatMap((nome) => this.pokeapiService.detailPokemon(nome))
+          )
+        ),
+        toArray(),
+        finalize(() => (this.isLoading = false))
+      )
+      .subscribe((pokemons) => {
+        pokemons.forEach((pokemon) => {
+          this.pokeCard.push({
+            name: pokemon.name,
+            type: pokemon.types[0].type.name,
+            position: `${pokemon.id}`,
+            img: `${this.baseUrlImg}${pokemon.id}.png`,
+          });
+        });
+      });
   }
   private resolverFilter(filter: PokemonApiFilters): PokemonApiFilters {
     if (filter.offset && filter.limit) {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map, debounceTime } from 'rxjs';
 
 type PokemonList = {
   name: string;
@@ -56,5 +56,16 @@ export class PokeapiService {
 
   public detailPokemon(namePokemon: string): Observable<DetalhePokemon> {
     return this.http.get<DetalhePokemon>(`${this.baseUrl}/${namePokemon}`);
+  }
+
+  public filterPokemons(term: string): Observable<PokemonList[]> {
+    return this.http
+      .get<ListPokemons>(`${this.baseUrl}`, { params: { limit: -1 } })
+      .pipe(
+        debounceTime(5000),
+        map(({ results }) =>
+          results.filter((pokemon) => pokemon.name.indexOf(term) !== -1)
+        )
+      );
   }
 }
