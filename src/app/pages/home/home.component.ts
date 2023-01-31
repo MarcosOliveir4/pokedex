@@ -1,8 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { map, switchMap } from 'rxjs';
+import { concatMap, finalize, from, map, mergeMap, toArray } from 'rxjs';
 import { PokeCardProps } from 'src/app/components/pokecard/pokecard.component';
 import {
-  DetalhePokemon,
   PokeapiService,
   PokemonApiFilters,
 } from 'src/app/services/pokeapi.service';
@@ -16,6 +15,7 @@ export class HomeComponent implements OnInit {
   public pokeCard: PokeCardProps[] = [];
   private baseUrlImg = environment.baseUrlImage;
   private filterListPokemon: PokemonApiFilters = { limit: 15, offset: 0 };
+  public isLoading = true;
 
   constructor(private pokeapiService: PokeapiService) {}
   public pokemon(pokemon: PokeCardProps) {
@@ -23,6 +23,7 @@ export class HomeComponent implements OnInit {
   }
 
   public buscarPokemons() {
+    this.isLoading = true;
     this.listPokemonService(this.resolverFilter(this.filterListPokemon));
   }
   private resolverFilter(filter: PokemonApiFilters): PokemonApiFilters {
@@ -33,31 +34,30 @@ export class HomeComponent implements OnInit {
     filter.offset = this.filterListPokemon.limit;
     return filter;
   }
-  private ordenarListagem({ name, id, types }: DetalhePokemon) {
-    this.pokeCard.push({
-      name,
-      type: types[0].type.name,
-      position: `${id}`,
-      img: `${this.baseUrlImg}${id}.png`,
-    });
-
-    this.pokeCard.sort((p1, p2) => Number(p1.position) - Number(p2.position));
-  }
 
   private listPokemonService(filterListPokemon: PokemonApiFilters) {
     this.pokeapiService
       .listPokemons(filterListPokemon)
       .pipe(
         map(({ results }) => results.map(({ name }) => name)),
-        switchMap((nomes) =>
-          nomes.map((nome) =>
-            this.pokeapiService.detailPokemon(nome).subscribe((pokemon) => {
-              this.ordenarListagem(pokemon);
-            })
+        mergeMap((nomes) =>
+          from(nomes).pipe(
+            concatMap((nome) => this.pokeapiService.detailPokemon(nome))
           )
-        )
+        ),
+        toArray(),
+        finalize(() => (this.isLoading = false))
       )
-      .subscribe();
+      .subscribe((pokemons) => {
+        pokemons.forEach((pokemon) => {
+          this.pokeCard.push({
+            name: pokemon.name,
+            type: pokemon.types[0].type.name,
+            position: `${pokemon.id}`,
+            img: `${this.baseUrlImg}${pokemon.id}.png`,
+          });
+        });
+      });
   }
 
   ngOnInit(): void {
